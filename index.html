@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>韓国旅行プランニングマップ</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Leaflet Locate Plugin CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.css" />
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- サイドバー -->
+            <div class="col-md-3 sidebar">
+                <div class="sidebar-content">
+                    <h2 class="sidebar-title">🇰🇷 韓国旅行マップ</h2>
+                    
+                    <!-- 장소 검색 -->
+                    <div class="search-section">
+                        <h5>🔍 장소 검색 (場所を検索)</h5>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="search-input" placeholder="한국 도시명이나 장소를 입력하세요... (예: 서울, 부산, 제주도)">
+                            <button class="btn btn-outline-secondary" type="button" id="search-btn">검색</button>
+                        </div>
+                        <div id="search-results" class="search-results"></div>
+                        <div class="korea-quick-search">
+                            <small class="text-muted">빠른 검색:</small>
+                            <div class="quick-search-buttons mt-2">
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('서울')">서울</button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('부산')">부산</button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('제주도')">제주도</button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('경주')">경주</button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('인천')">인천</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ルート検索 -->
+                    <div class="route-section">
+                        <h5><i class="fas fa-route"></i> ルート検索</h5>
+                        <div class="route-inputs">
+                            <div class="route-input-group">
+                                <label for="route-start">📍 出発地</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control route-input" id="route-start" placeholder="出発地を入力...">
+                                    <select class="form-select route-select" id="route-start-pins">
+                                        <option value="">ピンから選択</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="route-input-group">
+                                <label for="route-end">🏁 目的地</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control route-input" id="route-end" placeholder="目的地を入力...">
+                                    <select class="form-select route-select" id="route-end-pins">
+                                        <option value="">ピンから選択</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="route-mode-toggle">
+                            <div class="btn-group w-100 mb-2" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm route-mode-btn active" id="mode-search">
+                                    <i class="fas fa-keyboard"></i> 入力検索
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm route-mode-btn" id="mode-click">
+                                    <i class="fas fa-mouse-pointer"></i> クリック設定
+                                </button>
+                            </div>
+                        </div>
+                        <div class="route-buttons">
+                            <button class="btn btn-primary btn-sm" id="search-route-btn">
+                                <i class="fas fa-search"></i> ルート検索
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" id="clear-route-btn">
+                                <i class="fas fa-times"></i> クリア
+                            </button>
+                        </div>
+                        <div id="route-manual-guide" class="route-guide" style="display: none;">
+                            <div class="guide-content">
+                                <div class="guide-step active" id="guide-start">
+                                    <i class="fas fa-play-circle"></i>
+                                    <span>地図をクリックして出発地を設定</span>
+                                </div>
+                                <div class="guide-step" id="guide-end">
+                                    <i class="fas fa-flag-checkered"></i>
+                                    <span>次に目的地をクリック</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="route-info" class="route-info" style="display: none;"></div>
+                        <div id="route-navigation" class="route-navigation" style="display: none;">
+                            <div class="navigation-header">
+                                <h6><i class="fas fa-route"></i> ナビゲーション</h6>
+                                <button class="btn btn-sm btn-outline-secondary toggle-nav" id="toggle-navigation">
+                                    <i class="fas fa-chevron-up"></i>
+                                </button>
+                            </div>
+                            <div class="navigation-content" id="navigation-steps">
+                                <!-- ナビゲーションステップがここに表示されます -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- カテゴリフィルター -->
+                    <div class="filter-section">
+                        <h5>カテゴリフィルター</h5>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="toggle-labels" checked>
+                            <label class="form-check-label" for="toggle-labels">
+                                <i class="fas fa-tag"></i> 場所名ラベルを表示
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="tourist" id="filter-tourist" checked>
+                            <label class="form-check-label" for="filter-tourist">
+                                <span class="category-dot tourist"></span>관광지 (観光地)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="food" id="filter-food" checked>
+                            <label class="form-check-label" for="filter-food">
+                                <span class="category-dot food"></span>맛집 (グルメ)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="shopping" id="filter-shopping" checked>
+                            <label class="form-check-label" for="filter-shopping">
+                                <span class="category-dot shopping"></span>쇼핑 (ショッピング)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="hotel" id="filter-hotel" checked>
+                            <label class="form-check-label" for="filter-hotel">
+                                <span class="category-dot hotel"></span>숙박 (宿泊)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="culture" id="filter-culture" checked>
+                            <label class="form-check-label" for="filter-culture">
+                                <span class="category-dot culture"></span>문화 (文化)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="cafe" id="filter-cafe" checked>
+                            <label class="form-check-label" for="filter-cafe">
+                                <span class="category-dot cafe"></span>카페 (カフェ)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="transport" id="filter-transport" checked>
+                            <label class="form-check-label" for="filter-transport">
+                                <span class="category-dot transport"></span>교통 (交通)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="kpop" id="filter-kpop" checked>
+                            <label class="form-check-label" for="filter-kpop">
+                                <span class="category-dot kpop"></span>K-POP/한류
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- 保存済みピン一覧 -->
+                    <div class="pins-section">
+                        <h5>📍 저장된 장소 (保存済みの場所)</h5>
+                        <div id="pins-list" class="pins-list">
+                            <p class="text-muted">아직 장소가 추가되지 않았습니다</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 데이터 관리 -->
+                    <div class="data-section">
+                        <button class="btn btn-outline-secondary btn-sm" id="export-btn">🗂️ 데이터 내보내기</button>
+                        <input type="file" id="import-file" accept=".json" style="display: none;">
+                        <button class="btn btn-outline-secondary btn-sm" id="import-btn">📥 데이터 가져오기</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- メインマップエリア -->
+            <div class="col-md-9 map-container">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ピン追加モーダル -->
+    <div class="modal fade" id="addPinModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">🗺️ 새로운 장소 추가 (新しい場所を追加)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="pin-form">
+                        <div class="mb-3">
+                            <label for="pin-name" class="form-label">장소명 / 場所名 *</label>
+                            <input type="text" class="form-control" id="pin-name" placeholder="예: 경복궁, 명동, 홍대입구역..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pin-category" class="form-label">카테고리 / カテゴリ *</label>
+                            <select class="form-select" id="pin-category" required>
+                                <option value="tourist">관광지 (観光地)</option>
+                                <option value="food">맛집 (グルメ)</option>
+                                <option value="shopping">쇼핑 (ショッピング)</option>
+                                <option value="hotel">숙박 (宿泊)</option>
+                                <option value="culture">문화 (文化)</option>
+                                <option value="cafe">카페 (カフェ)</option>
+                                <option value="transport">교통 (交通)</option>
+                                <option value="kpop">K-POP/한류</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pin-memo" class="form-label">메모 / メモ</label>
+                            <textarea class="form-control" id="pin-memo" rows="3" placeholder="방문 계획이나 특별한 정보를 입력하세요..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소 (キャンセル)</button>
+                    <button type="button" class="btn btn-primary" id="save-pin-btn">저장 (保存)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Leaflet Locate Plugin JS -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@0.79.0/dist/L.Control.Locate.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+</html>
