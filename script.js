@@ -1,5 +1,5 @@
 // アプリケーションクラス
-class WorldTravelMap {
+class TravelMap {
     constructor() {
         this.map = null;
         this.pins = this.loadPins();
@@ -15,56 +15,56 @@ class WorldTravelMap {
         this.showLabels = this.loadLabelsSettings(); // ラベル表示設定を読み込み
         this.categories = {
             tourist: { 
-                name: '관광지 (観光地)', 
+                name: '観光地', 
                 color: '#FF6B6B', 
                 bgColor: '#FFE5E5',
                 icon: 'fas fa-camera',
                 gradient: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)'
             },
             food: { 
-                name: '맛집 (グルメ)', 
+                name: 'グルメ', 
                 color: '#4ECDC4', 
                 bgColor: '#E5F9F7',
                 icon: 'fas fa-utensils',
                 gradient: 'linear-gradient(135deg, #4ECDC4 0%, #6EE7E0 100%)'
             },
             shopping: { 
-                name: '쇼핑 (ショッピング)', 
+                name: 'ショッピング', 
                 color: '#45B7D1', 
                 bgColor: '#E5F4FD',
                 icon: 'fas fa-shopping-bag',
                 gradient: 'linear-gradient(135deg, #45B7D1 0%, #67C3DD 100%)'
             },
             hotel: { 
-                name: '숙박 (宿泊)', 
+                name: '宿泊', 
                 color: '#96CEB4', 
                 bgColor: '#F0F9F4',
                 icon: 'fas fa-bed',
                 gradient: 'linear-gradient(135deg, #96CEB4 0%, #B2D8C4 100%)'
             },
             culture: {
-                name: '문화 (文化)',
+                name: '文化',
                 color: '#8B5CF6',
                 bgColor: '#F3F0FF',
                 icon: 'fas fa-theater-masks',
                 gradient: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)'
             },
             cafe: {
-                name: '카페 (カフェ)',
+                name: 'カフェ',
                 color: '#F59E0B',
                 bgColor: '#FEF3C7',
                 icon: 'fas fa-coffee',
                 gradient: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)'
             },
             transport: {
-                name: '교통 (交通)',
+                name: '交通',
                 color: '#3B82F6',
                 bgColor: '#DBEAFE',
                 icon: 'fas fa-subway',
                 gradient: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)'
             },
             kpop: {
-                name: 'K-POP/한류',
+                name: 'エンターテイメント',
                 color: '#EC4899',
                 bgColor: '#FCE7F3',
                 icon: 'fas fa-music',
@@ -87,12 +87,12 @@ class WorldTravelMap {
     
     // マップ初期化
     initMap() {
-        // 韓国の中心座標 (ソウル)
-        const koreaCenter = [37.5665, 126.9780];
+        // 世界地図の中心座標
+        const worldCenter = [35.0, 0.0];
         
         this.map = L.map('map', {
-            center: koreaCenter,
-            zoom: 7, // 韓国全体が見える程度のズーム
+            center: worldCenter,
+            zoom: 2, // 世界全体が見えるズームレベル
             zoomControl: false // デフォルトのズームコントロールを無効化
         });
         
@@ -172,6 +172,11 @@ class WorldTravelMap {
             this.savePinFromForm();
         });
         
+        // ピン更新ボタン
+        document.getElementById('update-pin-btn').addEventListener('click', () => {
+            this.updatePinFromForm();
+        });
+        
         // 検索機能
         document.getElementById('search-btn').addEventListener('click', () => {
             this.searchLocation();
@@ -245,10 +250,16 @@ class WorldTravelMap {
         });
         
         // モーダルイベント
-        const modal = document.getElementById('addPinModal');
-        modal.addEventListener('hidden.bs.modal', () => {
+        const addModal = document.getElementById('addPinModal');
+        addModal.addEventListener('hidden.bs.modal', () => {
             this.clearTempMarker();
             this.clearForm();
+        });
+        
+        const editModal = document.getElementById('editPinModal');
+        editModal.addEventListener('hidden.bs.modal', () => {
+            this.clearEditForm();
+            this.editingPinId = null;
         });
     }
     
@@ -287,13 +298,16 @@ class WorldTravelMap {
         const size = isTemp ? 50 : 40;
         const shadowSize = isTemp ? 25 : 20;
         
-        // ズームレベルに応じたラベルサイズ調整
+        // ズームレベルに応じたラベルサイズ調整（より大きく、常に表示）
         const zoom = this.map ? this.map.getZoom() : 10;
-        const labelScale = Math.max(0.7, Math.min(1.3, zoom / 10));
-        const labelFontSize = Math.round(11 * labelScale);
+        // ズームが小さくても大きくても読みやすいサイズに調整
+        const labelScale = Math.max(1.0, Math.min(2.0, zoom / 8));
+        const labelFontSize = Math.round(12 * labelScale);
         
-        const hasLabel = labelText && this.showLabels && !isTemp;
-        const labelHeight = hasLabel ? 25 * labelScale : 0;
+        // ラベルを常に表示（一時マーカー以外）
+        const hasLabel = labelText && !isTemp;
+        // ラベルの高さを動的に調整
+        const labelHeight = hasLabel ? Math.max(28, 20 * labelScale) : 0;
         const totalHeight = hasLabel ? size * 1.2 + labelHeight : size * 1.2;
         
         return L.divIcon({
@@ -311,11 +325,11 @@ class WorldTravelMap {
                         </div>
                         <div class="pin-shadow" style="width: ${shadowSize}px;"></div>
                     </div>
-                    ${hasLabel ? `<div class="pin-label" style="background-color: ${categoryInfo.color}; font-size: ${labelFontSize}px;">${labelText}</div>` : ''}
+                    ${hasLabel ? `<div class="pin-label always-visible" style="background-color: ${categoryInfo.color}; font-size: ${labelFontSize}px; font-weight: bold; min-width: ${labelText.length * Math.max(6, labelScale * 4)}px;">${labelText}</div>` : ''}
                 </div>
             `,
-            iconSize: [Math.max(size, labelText.length * 8), totalHeight],
-            iconAnchor: [Math.max(size, labelText.length * 8)/2, totalHeight],
+            iconSize: [Math.max(size, labelText.length * Math.max(6, labelScale * 4)), totalHeight],
+            iconAnchor: [Math.max(size, labelText.length * Math.max(6, labelScale * 4))/2, totalHeight],
             popupAnchor: [0, -totalHeight]
         });
     }
@@ -327,7 +341,7 @@ class WorldTravelMap {
         const memo = document.getElementById('pin-memo').value.trim();
         
         if (!name) {
-            alert('장소명을 입력해주세요 (場所名を入力してください)。');
+            alert('場所名を入力してください。');
             return;
         }
         
@@ -348,7 +362,7 @@ class WorldTravelMap {
         const modal = bootstrap.Modal.getInstance(document.getElementById('addPinModal'));
         modal.hide();
         
-        this.showSuccessMessage('장소를 추가했습니다! (場所を追加しました！)');
+        this.showSuccessMessage('場所を追加しました！');
     }
     
     // ピンを追加
@@ -402,14 +416,17 @@ class WorldTravelMap {
                 <div class="popup-footer">
                     <div class="popup-actions">
                         <button class="btn btn-sm popup-btn ${pin.visited ? 'btn-warning' : 'btn-success'}" onclick="app.toggleVisited('${pin.id}')">
-                            ${visitedIcon} ${pin.visited ? '미방문 (未訪問)' : '방문완료 (訪問済み)'}
+                            ${visitedIcon} ${pin.visited ? '未訪問' : '訪問済み'}
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary popup-btn" onclick="app.editPin('${pin.id}')">
+                            <i class="fas fa-edit"></i> 編集
                         </button>
                         <button class="btn btn-sm btn-outline-danger popup-btn" onclick="app.deletePin('${pin.id}')">
-                            <i class="fas fa-trash"></i> 삭제 (削除)
+                            <i class="fas fa-trash"></i> 削除
                         </button>
                     </div>
                     <div class="popup-date">
-                        추가일 (追加): ${new Date(pin.createdAt).toLocaleDateString('ko-KR')}
+                        追加日: ${new Date(pin.createdAt).toLocaleDateString('ja-JP')}
                     </div>
                 </div>
             </div>
@@ -421,7 +438,7 @@ class WorldTravelMap {
         const pinsList = document.getElementById('pins-list');
         
         if (this.pins.length === 0) {
-            pinsList.innerHTML = '<p class="text-muted">아직 장소가 추가되지 않았습니다 (まだ場所が追加されていません)</p>';
+            pinsList.innerHTML = '<p class="text-muted">まだ場所が追加されていません</p>';
             this.updateRouteSelects();
             return;
         }
@@ -448,11 +465,15 @@ class WorldTravelMap {
                         <button class="btn ${pin.visited ? 'btn-warning' : 'btn-success'} btn-sm google-btn" 
                                 onclick="event.stopPropagation(); app.toggleVisited('${pin.id}')">
                             <i class="fas ${pin.visited ? 'fa-undo' : 'fa-check'}"></i>
-                            ${pin.visited ? '미방문' : '완료'}
+                            ${pin.visited ? '未訪問' : '完了'}
+                        </button>
+                        <button class="btn btn-primary btn-sm google-btn" 
+                                onclick="event.stopPropagation(); app.editPin('${pin.id}')">
+                            <i class="fas fa-edit"></i> 編集
                         </button>
                         <button class="btn btn-danger btn-sm google-btn" 
                                 onclick="event.stopPropagation(); app.deletePin('${pin.id}')">
-                            <i class="fas fa-trash"></i> 삭제
+                            <i class="fas fa-trash"></i> 削除
                         </button>
                     </div>
                 </div>
@@ -492,7 +513,7 @@ class WorldTravelMap {
     
     // ピン削除
     deletePin(pinId) {
-        if (confirm('이 장소를 삭제하시겠습니까? (この場所を削除しますか？)')) {
+        if (confirm('この場所を削除しますか？')) {
             // 配列から削除
             this.pins = this.pins.filter(p => p.id !== pinId);
             
@@ -504,8 +525,91 @@ class WorldTravelMap {
             
             this.savePins();
             this.renderPinsList();
-            this.showSuccessMessage('장소를 삭제했습니다 (場所を削除しました)。');
+            this.showSuccessMessage('場所を削除しました。');
         }
+    }
+    
+    // ピン編集
+    editPin(pinId) {
+        const pin = this.pins.find(p => p.id === pinId);
+        if (!pin) {
+            this.showErrorMessage('場所が見つかりません。');
+            return;
+        }
+        
+        // 編集中のピンIDを保存
+        this.editingPinId = pinId;
+        
+        // フォームに現在の値を設定
+        document.getElementById('edit-pin-name').value = pin.name;
+        document.getElementById('edit-pin-category').value = pin.category;
+        document.getElementById('edit-pin-memo').value = pin.memo || '';
+        
+        // モーダルを表示
+        const modal = new bootstrap.Modal(document.getElementById('editPinModal'));
+        modal.show();
+    }
+    
+    // フォームからピンを更新
+    updatePinFromForm() {
+        if (!this.editingPinId) {
+            this.showErrorMessage('編集中のピンが見つかりません。');
+            return;
+        }
+        
+        const name = document.getElementById('edit-pin-name').value.trim();
+        const category = document.getElementById('edit-pin-category').value;
+        const memo = document.getElementById('edit-pin-memo').value.trim();
+        
+        if (!name) {
+            alert('場所名を入力してください。');
+            return;
+        }
+        
+        // ピンを更新
+        const pinIndex = this.pins.findIndex(p => p.id === this.editingPinId);
+        if (pinIndex === -1) {
+            this.showErrorMessage('場所が見つかりません。');
+            return;
+        }
+        
+        const pin = this.pins[pinIndex];
+        const oldCategory = pin.category;
+        const oldName = pin.name;
+        
+        // ピン情報を更新
+        pin.name = name;
+        pin.category = category;
+        pin.memo = memo;
+        pin.updatedAt = new Date().toISOString();
+        
+        // マーカーを更新（カテゴリや名前が変更された場合）
+        if (oldCategory !== category || oldName !== name) {
+            if (this.markers[this.editingPinId]) {
+                this.map.removeLayer(this.markers[this.editingPinId]);
+                delete this.markers[this.editingPinId];
+            }
+            this.showPin(pin);
+        } else {
+            // ポップアップのみ更新
+            if (this.markers[this.editingPinId]) {
+                const popupContent = this.createPopupContent(pin);
+                this.markers[this.editingPinId].setPopupContent(popupContent);
+            }
+        }
+        
+        this.savePins();
+        this.renderPinsList();
+        this.filterPins();
+        
+        // モーダルを閉じる
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editPinModal'));
+        modal.hide();
+        
+        // 編集IDをクリア
+        this.editingPinId = null;
+        
+        this.showSuccessMessage('場所情報を更新しました！');
     }
     
     // ピンフィルター
@@ -544,7 +648,7 @@ class WorldTravelMap {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
-        this.showSuccessMessage('데이터를 내보냈습니다! (データをエクスポートしました！)');
+        this.showSuccessMessage('データをエクスポートしました！');
     }
     
     // データインポート
@@ -570,7 +674,7 @@ class WorldTravelMap {
                     this.renderPinsList();
                     this.showAllPins();
                     
-                    this.showSuccessMessage('데이터를 가져왔습니다! (データをインポートしました！)');
+                    this.showSuccessMessage('データをインポートしました！');
                 } else {
                     throw new Error('無効なデータ形式です。');
                 }
@@ -588,21 +692,20 @@ class WorldTravelMap {
     async searchLocation() {
         const query = document.getElementById('search-input').value.trim();
         if (!query) {
-            this.showErrorMessage('검색어를 입력해주세요 (検索ワードを入力してください)。');
+            this.showErrorMessage('検索ワードを入力してください。');
             return;
         }
         
         const resultsDiv = document.getElementById('search-results');
-        resultsDiv.innerHTML = '<div class="text-muted">검색 중... (検索中...)</div>';
+        resultsDiv.innerHTML = '<div class="text-muted">検索中...</div>';
         
         try {
-            // 韓国内の検索に特化したクエリ
-            const koreaQuery = query.includes('Korea') || query.includes('한국') ? query : `${query} South Korea`;
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(koreaQuery)}&limit=5&addressdetails=1&countrycodes=kr`);
+            // 世界中の場所を検索
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`);
             const results = await response.json();
             
             if (results.length === 0) {
-                resultsDiv.innerHTML = '<div class="text-muted">검색 결과를 찾을 수 없습니다 (検索結果が見つかりませんでした)。</div>';
+                resultsDiv.innerHTML = '<div class="text-muted">検索結果が見つかりませんでした。</div>';
                 return;
             }
             
@@ -616,8 +719,8 @@ class WorldTravelMap {
             resultsDiv.innerHTML = html;
             
         } catch (error) {
-            console.error('검색 오류 (検索エラー):', error);
-            resultsDiv.innerHTML = '<div class="text-danger">검색에 실패했습니다 (検索に失敗しました)。</div>';
+            console.error('検索エラー:', error);
+            resultsDiv.innerHTML = '<div class="text-danger">検索に失敗しました。</div>';
         }
     }
     
@@ -648,7 +751,7 @@ class WorldTravelMap {
         document.getElementById('search-input').value = '';
     }
     
-    // 빠른 검색 기능
+    // クイック検索機能
     quickSearch(query) {
         document.getElementById('search-input').value = query;
         this.searchLocation();
@@ -745,6 +848,10 @@ class WorldTravelMap {
     
     clearForm() {
         document.getElementById('pin-form').reset();
+    }
+    
+    clearEditForm() {
+        document.getElementById('edit-pin-form').reset();
     }
     
     showSuccessMessage(message) {
@@ -1333,7 +1440,7 @@ class WorldTravelMap {
 // アプリケーション初期化
 let app;
 document.addEventListener('DOMContentLoaded', () => {
-    app = new WorldTravelMap();
+    app = new TravelMap();
 });
 
 // モバイル用サイドバートグル（必要に応じて）

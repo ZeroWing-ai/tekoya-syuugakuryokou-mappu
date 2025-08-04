@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>韓国旅行プランニングマップ</title>
+    <title>世界旅行プランニングマップ</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -26,24 +26,24 @@
             <!-- サイドバー -->
             <div class="col-md-3 sidebar">
                 <div class="sidebar-content">
-                    <h2 class="sidebar-title">🇰🇷 韓国旅行マップ</h2>
+                    <h2 class="sidebar-title">🌍 世界旅行マップ</h2>
                     
                     <!-- 장소 검색 -->
                     <div class="search-section">
-                        <h5>🔍 장소 검색 (場所を検索)</h5>
+                        <h5>🔍 場所を検索</h5>
                         <div class="input-group mb-3">
-                            <input type="text" class="form-control" id="search-input" placeholder="한국 도시명이나 장소를 입력하세요... (예: 서울, 부산, 제주도)">
-                            <button class="btn btn-outline-secondary" type="button" id="search-btn">검색</button>
+                            <input type="text" class="form-control" id="search-input" placeholder="都市名や場所を入力してください... (例: 東京, パリ, ニューヨーク)">
+                            <button class="btn btn-outline-secondary" type="button" id="search-btn">検索</button>
                         </div>
                         <div id="search-results" class="search-results"></div>
                         <div class="korea-quick-search">
-                            <small class="text-muted">빠른 검색:</small>
+                            <small class="text-muted">クイック検索:</small>
                             <div class="quick-search-buttons mt-2">
-                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('서울')">서울</button>
-                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('부산')">부산</button>
-                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('제주도')">제주도</button>
-                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('경주')">경주</button>
-                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('인천')">인천</button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('東京')">東京</button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('パリ')">パリ</button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('ニューヨーク')">ニューヨーク</button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('ロンドン')">ロンドン</button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.quickSearch('シンガポール')">シンガポール</button>
                             </div>
                         </div>
                     </div>
@@ -127,66 +127,66 @@
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="tourist" id="filter-tourist" checked>
                             <label class="form-check-label" for="filter-tourist">
-                                <span class="category-dot tourist"></span>관광지 (観光地)
+                                <span class="category-dot tourist"></span>観光地
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="food" id="filter-food" checked>
                             <label class="form-check-label" for="filter-food">
-                                <span class="category-dot food"></span>맛집 (グルメ)
+                                <span class="category-dot food"></span>グルメ
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="shopping" id="filter-shopping" checked>
                             <label class="form-check-label" for="filter-shopping">
-                                <span class="category-dot shopping"></span>쇼핑 (ショッピング)
+                                <span class="category-dot shopping"></span>ショッピング
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="hotel" id="filter-hotel" checked>
                             <label class="form-check-label" for="filter-hotel">
-                                <span class="category-dot hotel"></span>숙박 (宿泊)
+                                <span class="category-dot hotel"></span>宿泊
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="culture" id="filter-culture" checked>
                             <label class="form-check-label" for="filter-culture">
-                                <span class="category-dot culture"></span>문화 (文化)
+                                <span class="category-dot culture"></span>文化
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="cafe" id="filter-cafe" checked>
                             <label class="form-check-label" for="filter-cafe">
-                                <span class="category-dot cafe"></span>카페 (カフェ)
+                                <span class="category-dot cafe"></span>カフェ
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="transport" id="filter-transport" checked>
                             <label class="form-check-label" for="filter-transport">
-                                <span class="category-dot transport"></span>교통 (交通)
+                                <span class="category-dot transport"></span>交通
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" value="kpop" id="filter-kpop" checked>
                             <label class="form-check-label" for="filter-kpop">
-                                <span class="category-dot kpop"></span>K-POP/한류
+                                <span class="category-dot kpop"></span>エンターテイメント
                             </label>
                         </div>
                     </div>
                     
                     <!-- 保存済みピン一覧 -->
                     <div class="pins-section">
-                        <h5>📍 저장된 장소 (保存済みの場所)</h5>
+                        <h5>📍 保存済みの場所</h5>
                         <div id="pins-list" class="pins-list">
-                            <p class="text-muted">아직 장소가 추가되지 않았습니다</p>
+                            <p class="text-muted">まだ場所が追加されていません</p>
                         </div>
                     </div>
                     
                     <!-- 데이터 관리 -->
                     <div class="data-section">
-                        <button class="btn btn-outline-secondary btn-sm" id="export-btn">🗂️ 데이터 내보내기</button>
+                        <button class="btn btn-outline-secondary btn-sm" id="export-btn">🗂️ データエクスポート</button>
                         <input type="file" id="import-file" accept=".json" style="display: none;">
-                        <button class="btn btn-outline-secondary btn-sm" id="import-btn">📥 데이터 가져오기</button>
+                        <button class="btn btn-outline-secondary btn-sm" id="import-btn">📥 データインポート</button>
                     </div>
                 </div>
             </div>
@@ -203,37 +203,78 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">🗺️ 새로운 장소 추가 (新しい場所を追加)</h5>
+                    <h5 class="modal-title">🗺️ 新しい場所を追加</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="pin-form">
                         <div class="mb-3">
-                            <label for="pin-name" class="form-label">장소명 / 場所名 *</label>
-                            <input type="text" class="form-control" id="pin-name" placeholder="예: 경복궁, 명동, 홍대입구역..." required>
+                            <label for="pin-name" class="form-label">場所名 *</label>
+                            <input type="text" class="form-control" id="pin-name" placeholder="例: 東京タワー, ルーブル美術館, タイムズスクエア..." required>
                         </div>
                         <div class="mb-3">
-                            <label for="pin-category" class="form-label">카테고리 / カテゴリ *</label>
+                            <label for="pin-category" class="form-label">カテゴリ *</label>
                             <select class="form-select" id="pin-category" required>
-                                <option value="tourist">관광지 (観光地)</option>
-                                <option value="food">맛집 (グルメ)</option>
-                                <option value="shopping">쇼핑 (ショッピング)</option>
-                                <option value="hotel">숙박 (宿泊)</option>
-                                <option value="culture">문화 (文化)</option>
-                                <option value="cafe">카페 (カフェ)</option>
-                                <option value="transport">교통 (交通)</option>
-                                <option value="kpop">K-POP/한류</option>
+                                <option value="tourist">観光地</option>
+                                <option value="food">グルメ</option>
+                                <option value="shopping">ショッピング</option>
+                                <option value="hotel">宿泊</option>
+                                <option value="culture">文化</option>
+                                <option value="cafe">カフェ</option>
+                                <option value="transport">交通</option>
+                                <option value="kpop">エンターテイメント</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="pin-memo" class="form-label">메모 / メモ</label>
-                            <textarea class="form-control" id="pin-memo" rows="3" placeholder="방문 계획이나 특별한 정보를 입력하세요..."></textarea>
+                            <label for="pin-memo" class="form-label">メモ</label>
+                            <textarea class="form-control" id="pin-memo" rows="3" placeholder="訪問予定や特別な情報を入力してください..."></textarea>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소 (キャンセル)</button>
-                    <button type="button" class="btn btn-primary" id="save-pin-btn">저장 (保存)</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" id="save-pin-btn">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ピン編集モーダル -->
+    <div class="modal fade" id="editPinModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">✏️ 場所情報を編集</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-pin-form">
+                        <div class="mb-3">
+                            <label for="edit-pin-name" class="form-label">場所名 *</label>
+                            <input type="text" class="form-control" id="edit-pin-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-pin-category" class="form-label">カテゴリ *</label>
+                            <select class="form-select" id="edit-pin-category" required>
+                                <option value="tourist">観光地</option>
+                                <option value="food">グルメ</option>
+                                <option value="shopping">ショッピング</option>
+                                <option value="hotel">宿泊</option>
+                                <option value="culture">文化</option>
+                                <option value="cafe">カフェ</option>
+                                <option value="transport">交通</option>
+                                <option value="kpop">エンターテイメント</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit-pin-memo" class="form-label">メモ</label>
+                            <textarea class="form-control" id="edit-pin-memo" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" id="update-pin-btn">更新</button>
                 </div>
             </div>
         </div>
